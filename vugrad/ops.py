@@ -170,6 +170,19 @@ class BatchMM(Op):
 
         return  np.matmul(go.T, vectors), np.matmul(go, matrix)
 
+class ReLU(Op):
+
+    @staticmethod
+    def forward(context, input):
+        relu = input > 0
+        context['relu'] = relu
+        return np.where(relu, input, 0)
+
+    @staticmethod
+    def backward(context, goutput):
+        relu = context['relu']
+        return np.where(relu, goutput, 0)
+
 class Sigmoid(Op):
     """
     Op for element-wise application of sigmoid function

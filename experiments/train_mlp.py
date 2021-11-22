@@ -10,6 +10,11 @@ import vugrad as vg
 # Parse command line arguments
 parser = ArgumentParser()
 
+parser.add_argument('-a', '--activation',
+                dest='activation',
+                help='Which activation to use. [sigmoid, relu]',
+                default='sigmoid', type=str)
+
 parser.add_argument('-D', '--dataset',
                 dest='data',
                 help='Which dataset to use. [synth, mnist]',
@@ -32,6 +37,15 @@ parser.add_argument('-l', '--learning-rate',
                 default=0.01, type=float)
 
 args = parser.parse_args()
+
+if args.activation == 'sigmoid':
+    activation = vg.sigmoid
+elif args.activation == 'relu':
+    activation = vg.relu
+else:
+    raise Exception(f'Activation {args.activation} not recognized.')
+
+print(f'## selected activation: {args.activation}\n')
 
 ## Load the data
 if args.data == 'synth':
@@ -81,7 +95,7 @@ class MLP(vg.Module):
         hidden = self.layer1(input)
 
         # non-linearity
-        hidden = vg.sigmoid(hidden)
+        hidden = activation(hidden)
         # -- We've called a utility function here, to mimin how this is usually done in pytorch. We could also do:
         #    hidden = Sigmoid.do_forward(hidden)
 

@@ -1,4 +1,4 @@
-from .ops import Log, Select, Sum, Normalize, Exp, Sigmoid, RowMax, Expand, RowSum, Unsqueeze, Id
+from .ops import Log, Select, Sum, Normalize, Exp, ReLU, Sigmoid, RowMax, Expand, RowSum, Unsqueeze, Id
 from .mnist import init, load
 from .core import TensorNode
 
@@ -96,6 +96,9 @@ def logceloss(logprobs, targets):
 
     # The loss sums all these. The higher the better, so we return the negative of this.
     return Sum.do_forward(per_instance) * - 1.0
+
+def relu(x):
+    return ReLU.do_forward(x)
 
 def sigmoid(x):
     """
