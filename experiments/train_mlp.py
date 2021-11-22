@@ -181,3 +181,12 @@ for epoch in range(args.epochs):
         loss.clear()
 
     print(f'   running loss: {cl/n:.4}')
+
+# Output final validation accuracy
+oval = mlp(vg.TensorNode(xval)).value
+predictions = np.argmax(oval, axis=1)
+num_correct = (predictions == yval).sum()
+acc = num_correct / yval.shape[0]
+
+print(f'\n## {epoch+1} epochs completed')
+print(f'       accuracy: {acc:.4}')
