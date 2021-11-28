@@ -36,6 +36,16 @@ parser.add_argument('-l', '--learning-rate',
                      'gradient descent algorithm. 0.1 works well for synth, 0.0001 works well for MNIST.',
                 default=0.01, type=float)
 
+parser.add_argument('-m', '--momentum',
+                dest='momentum',
+                help='The momentum factor gamma (default zero).',
+                default=0., type=float)
+
+parser.add_argument('-n', '--nesterov',
+                dest='nesterov',
+                help='Enable Nesterov momentum (default off).',
+                action='store_true')
+
 args = parser.parse_args()
 
 if args.activation == 'sigmoid':
@@ -120,6 +130,14 @@ mlp = MLP(input_size=num_features, output_size=num_classes)
 n, m = xtrain.shape
 b = args.batch_size
 
+momentum = None
+gamma = args.momentum
+if gamma > 0.:
+    momentum = [np.zeros_like(parm.value) for parm in mlp.parameters()]
+    print(f'\n## Gradient descent momentum enabled; gamma={gamma}; nesterov={args.nesterov}')
+else:
+    print(f'\n## Gradient descent momentum disabled')
+
 print('\n## Starting training')
 for epoch in range(args.epochs):
 
@@ -140,6 +158,12 @@ for epoch in range(args.epochs):
 
     # We loop over the data in batches of size `b`
     for fr in range(0, n, b):
+
+        if momentum:
+            for parm, Vt in zip(mlp.parameters(), momentum):
+                Vt *= gamma
+                if args.nesterov:
+                    parm.value -= Vt
 
         # The end index of the batch
         to = min(fr + b, n)
@@ -167,8 +191,14 @@ for epoch in range(args.epochs):
         loss.backward()
 
         # pply gradient descent
-        for parm in mlp.parameters():
-            parm.value -= args.lr * parm.grad
+        if momentum:
+            for parm, Vt in zip(mlp.parameters(), momentum):
+                grad_update = args.lr * parm.grad
+                Vt += grad_update
+                parm.value -= (grad_update if args.nesterov else Vt)
+        else:
+            for parm in mlp.parameters():
+                parm.value -= args.lr * parm.grad
             # -- Note that we are directly manipulating the members of the parm TensorNode. This means that for this
             #    part, we are not building up a computation graph.
 
